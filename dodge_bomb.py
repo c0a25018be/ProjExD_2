@@ -72,12 +72,43 @@ def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
         
     return bb_imgs, bb_accs  # 2つのリストをタプルとして返す [cite: 410]
 
+
+def get_kk_imgs() -> dict[tuple[int, int], pg.Surface]:
+    """
+    移動量のタプルをキー、向きに対応したこうかとん画像を値とする辞書を返す関数
+    """
+    # 基本のこうかとん（左向き）をロードして少し縮小
+    kk_img = pg.transform.rotozoom(pg.image.load("fig/3.png"), 0, 0.9)
+    # 第1回資料P.52を参考に、左右を反転させて右向きのこうかとんを作る
+    kk_img_f = pg.transform.flip(kk_img, True, False)
+    
+    # 移動量のタプルをキーとして、rotozoomで回転させた画像を辞書に登録する
+    # ※ Pygameのrotozoomの角度は「反時計回りがプラス」です。
+    kk_imgs = {
+        (0, 0): kk_img_f,  # 停止中（右向きをデフォルトにする）
+        (+5, 0): kk_img_f, # 右
+        (+5, -5): pg.transform.rotozoom(kk_img_f, 45, 1.0),   # 右上
+        (0, -5): pg.transform.rotozoom(kk_img_f, 90, 1.0),    # 上
+        (-5, -5): pg.transform.rotozoom(kk_img, -45, 1.0),    # 左上 (左向きを時計回りに45度)
+        (-5, 0): kk_img,   # 左
+        (-5, +5): pg.transform.rotozoom(kk_img, 45, 1.0),     # 左下 (左向きを反時計回りに45度)
+        (0, +5): pg.transform.rotozoom(kk_img_f, -90, 1.0),   # 下
+        (+5, +5): pg.transform.rotozoom(kk_img_f, -45, 1.0),  # 右下
+    }
+    return kk_imgs
+
+
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
-    bg_img = pg.image.load("fig/pg_bg.jpg")    
-    kk_img = pg.transform.rotozoom(pg.image.load("fig/3.png"), 0, 0.9)
-    kk_rct = kk_img.get_rect()
+    bg_img = pg.image.load("fig/pg_bg.jpg")   
+    # 辞書を受け取る
+    kk_imgs = get_kk_imgs()
+    # 初期状態（0, 0）の画像をセットする
+    kk_img = kk_imgs[(0, 0)]
+    kk_rct = kk_img.get_rect() 
+    #kk_img = pg.transform.rotozoom(pg.image.load("fig/3.png"), 0, 0.9)
+    #kk_rct = kk_img.get_rect()
     kk_rct.center = 300, 200
 
     # 関数を呼び出して爆弾画像リストと加速度リストを受け取る 
@@ -109,6 +140,7 @@ def main():
                 sum_mv[0] += mv[0]
                 sum_mv[1] += mv[1]
         kk_rct.move_ip(sum_mv)
+        kk_img = kk_imgs[tuple(sum_mv)]
         if check_bound(kk_rct) != (True, True):
             kk_rct.move_ip(-sum_mv[0], -sum_mv[1])
         
