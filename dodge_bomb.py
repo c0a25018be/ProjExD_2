@@ -1,9 +1,10 @@
+import math
 import os
-import sys
 import pygame as pg
 import random
+import sys
 import time
-import math
+
 
 WIDTH, HEIGHT = 1100, 650
 DELTA = {pg.K_UP: (0, -5), pg.K_DOWN: (0, +5), pg.K_LEFT: (-5, 0), pg.K_RIGHT: (5, 0),}
