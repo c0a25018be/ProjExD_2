@@ -3,6 +3,7 @@ import sys
 import pygame as pg
 import random
 import time
+import math
 
 WIDTH, HEIGHT = 1100, 650
 DELTA = {pg.K_UP: (0, -5), pg.K_DOWN: (0, +5), pg.K_LEFT: (-5, 0), pg.K_RIGHT: (5, 0),}
@@ -98,6 +99,32 @@ def get_kk_imgs() -> dict[tuple[int, int], pg.Surface]:
     return kk_imgs
 
 
+def calc_orientation(org: pg.Rect, dst: pg.Rect, current_xy: tuple[float, float]) -> tuple[float, float]:
+    """
+    爆弾からこうかとんへ向かう方向のベクトルを計算する関数
+    引数1 org: 爆弾のRect
+    引数2 dst: こうかとんのRect
+    引数3 current_xy: 現在の爆弾の速度ベクトル
+    戻り値: 正規化後方向ベクトル or 計算前の方向ベクトル
+    """
+    # 1. 差ベクトルを求める (こうかとんの座標 - 爆弾の座標)
+    diff_x = dst.centerx - org.centerx
+    diff_y = dst.centery - org.centery
+
+    # 2. 差ベクトルのノルム(距離)を計算する
+    norm = math.sqrt(diff_x**2 + diff_y**2)
+
+    # 3. 距離が300未満だったら、慣性として計算前の方向(current_xy)に移動させる
+    if norm < 300:
+        return current_xy
+
+    # 4. 差ベクトルのノルムが√50になるように正規化する
+    new_vx = (diff_x / norm) * math.sqrt(50)
+    new_vy = (diff_y / norm) * math.sqrt(50)
+
+    return new_vx, new_vy
+
+
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -145,6 +172,11 @@ def main():
             kk_rct.move_ip(-sum_mv[0], -sum_mv[1])
         
         screen.blit(kk_img, kk_rct)
+
+        # ▼ ここから演習4の追加部分
+        # 爆弾(bb_rct)からこうかとん(kk_rct)へのベクトルを計算して基本の速度(vx, vy)を更新する
+        vx, vy = calc_orientation(bb_rct, kk_rct, (vx, vy))
+        # ▲ 追加部分はここまで
         
         # ▼ ここから演習2の追加部分
         # tmr//500 で500フレームごとに段階を上げる。上限は9 (リストの最大インデックス) 
