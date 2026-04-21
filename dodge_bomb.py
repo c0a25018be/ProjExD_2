@@ -60,32 +60,30 @@ def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
     サイズの異なる爆弾Surfaceを要素とするリストと、加速度リストを返す関数
     """
     bb_imgs = []
-    bb_accs = [a for a in range(1, 11)]  # 加速度のリスト(1〜10) [cite: 409]
+    bb_accs = [a for a in range(1, 11)]  # 加速度のリスト(1〜10)
     
-    for r in range(1, 11):  # 1〜10の10段階でループ [cite: 406]
-        # サイズを拡大させた空のSurfaceを作る [cite: 407]
+    for r in range(1, 11):  # 1〜10の10段階でループ 
+        # サイズを拡大させた空のSurfaceを作る 
         bb_img = pg.Surface((20*r, 20*r))
-        # 拡大したSurfaceに合わせて赤い円を描画する [cite: 408, 412]
+        # 拡大したSurfaceに合わせて赤い円を描画する
         pg.draw.circle(bb_img, (255, 0, 0), (10*r, 10*r), 10*r)
-        # 背景の黒色を透明にする [cite: 305]
+        # 背景の黒色を透明にする 
         bb_img.set_colorkey((0, 0, 0))
         # リストに追加
         bb_imgs.append(bb_img)
         
-    return bb_imgs, bb_accs  # 2つのリストをタプルとして返す [cite: 410]
+    return bb_imgs, bb_accs  # 2つのリストをタプルとして返す
 
 
 def get_kk_imgs() -> dict[tuple[int, int], pg.Surface]:
     """
     移動量のタプルをキー、向きに対応したこうかとん画像を値とする辞書を返す関数
     """
-    # 基本のこうかとん（左向き）をロードして少し縮小
+    # 基本のこうかとんをロードして少し縮小
     kk_img = pg.transform.rotozoom(pg.image.load("fig/3.png"), 0, 0.9)
-    # 第1回資料P.52を参考に、左右を反転させて右向きのこうかとんを作る
     kk_img_f = pg.transform.flip(kk_img, True, False)
     
     # 移動量のタプルをキーとして、rotozoomで回転させた画像を辞書に登録する
-    # ※ Pygameのrotozoomの角度は「反時計回りがプラス」です。
     kk_imgs = {
         (0, 0): kk_img_f,  # 停止中（右向きをデフォルトにする）
         (+5, 0): kk_img_f, # 右
@@ -174,13 +172,10 @@ def main():
         
         screen.blit(kk_img, kk_rct)
 
-        # ▼ ここから演習4の追加部分
         # 爆弾(bb_rct)からこうかとん(kk_rct)へのベクトルを計算して基本の速度(vx, vy)を更新する
         vx, vy = calc_orientation(bb_rct, kk_rct, (vx, vy))
-        # ▲ 追加部分はここまで
         
-        # ▼ ここから演習2の追加部分
-        # tmr//500 で500フレームごとに段階を上げる。上限は9 (リストの最大インデックス) 
+        # tmr//500 で500フレームごとに段階を上げる。
         idx = min(tmr // 500, 9)
         
         # 加速度リストから値を取得し、現在の速度(vx, vy)に掛けて新しい速度を計算 
@@ -196,7 +191,6 @@ def main():
         
         # 加速された速度(avx, avy)で爆弾を移動させる 
         bb_rct.move_ip(avx, avy)
-        # ▲ 追加部分はここまで
         #screen.blit(kk_img, kk_rct)
         #bb_rct.move_ip(vx, vy)
         yoko, tate = check_bound(bb_rct)
