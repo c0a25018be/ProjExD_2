@@ -2,6 +2,7 @@ import os
 import sys
 import pygame as pg
 import random
+import time
 
 WIDTH, HEIGHT = 1100, 650
 DELTA = {pg.K_UP: (0, -5), pg.K_DOWN: (0, +5), pg.K_LEFT: (-5, 0), pg.K_RIGHT: (5, 0),}
@@ -21,6 +22,38 @@ def check_bound(rct: pg.Rect) -> tuple[bool, bool]:
         tate = False
     return yoko, tate
 
+
+def gameover(screen: pg.Surface) -> None:
+    """
+    ゲームオーバー画面を表示する関数
+    引数：screen(画面Surface)
+    """
+    bg_img = pg.Surface((WIDTH,HEIGHT))
+    pg.draw.rect(bg_img,(0,0,0),(0,0,WIDTH,HEIGHT))
+
+    bg_img.set_alpha(150)
+
+    fonto = pg.font.Font(None,80)
+    txt = fonto.render("Game Over", True ,(255, 255, 255))
+    txt_rct=txt.get_rect()
+    txt_rct.center = WIDTH // 2, HEIGHT // 2
+    bg_img.blit(txt, txt_rct)
+
+    kk_img1 = pg.image.load("fig/8.png")
+
+    kk_rct1 = kk_img1.get_rect()
+    kk_rct1.center = WIDTH // 2 - 200, HEIGHT // 2
+    bg_img.blit(kk_img1, kk_rct1)
+
+    kk_rct2 = kk_img1.get_rect()
+    kk_rct2.center = WIDTH // 2 + 200, HEIGHT // 2
+    bg_img.blit(kk_img1, kk_rct2)
+
+    screen.blit(bg_img, [0, 0])
+    
+    pg.display.update()
+    time.sleep(5)
+    
 
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
@@ -45,7 +78,7 @@ def main():
                 return
             
         if kk_rct.colliderect(bb_rct): 
-            print("ゲームオーバー")
+            gameover(screen)
             return
         screen.blit(bg_img, [0, 0]) 
 
