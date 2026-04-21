@@ -40,11 +40,9 @@ def gameover(screen: pg.Surface) -> None:
     bg_img.blit(txt, txt_rct)
 
     kk_img1 = pg.image.load("fig/8.png")
-
     kk_rct1 = kk_img1.get_rect()
     kk_rct1.center = WIDTH // 2 - 200, HEIGHT // 2
     bg_img.blit(kk_img1, kk_rct1)
-
     kk_rct2 = kk_img1.get_rect()
     kk_rct2.center = WIDTH // 2 + 200, HEIGHT // 2
     bg_img.blit(kk_img1, kk_rct2)
@@ -53,7 +51,26 @@ def gameover(screen: pg.Surface) -> None:
     
     pg.display.update()
     time.sleep(5)
+
+
+def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
+    """
+    サイズの異なる爆弾Surfaceを要素とするリストと、加速度リストを返す関数
+    """
+    bb_imgs = []
+    bb_accs = [a for a in range(1, 11)]  # 加速度のリスト(1〜10) [cite: 409]
     
+    for r in range(1, 11):  # 1〜10の10段階でループ [cite: 406]
+        # サイズを拡大させた空のSurfaceを作る [cite: 407]
+        bb_img = pg.Surface((20*r, 20*r))
+        # 拡大したSurfaceに合わせて赤い円を描画する [cite: 408, 412]
+        pg.draw.circle(bb_img, (255, 0, 0), (10*r, 10*r), 10*r)
+        # 背景の黒色を透明にする [cite: 305]
+        bb_img.set_colorkey((0, 0, 0))
+        # リストに追加
+        bb_imgs.append(bb_img)
+        
+    return bb_imgs, bb_accs  # 2つのリストをタプルとして返す [cite: 410]
 
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
@@ -63,9 +80,12 @@ def main():
     kk_rct = kk_img.get_rect()
     kk_rct.center = 300, 200
 
-    bb_img = pg.Surface((20, 20)) # 爆弾用の空のSurfaceを作る 
-    pg.draw.circle(bb_img, (255, 0, 0), (10, 10), 10) # 爆弾円を描く 
-    bb_img.set_colorkey((0, 0, 0))
+    # 関数を呼び出して爆弾画像リストと加速度リストを受け取る 
+    bb_imgs, bb_accs = init_bb_imgs()
+    bb_img = bb_imgs[0]  # 初期状態として一番小さい爆弾(インデックス0)をセット
+    #bb_img = pg.Surface((20, 20)) # 爆弾用の空のSurfaceを作る 
+    #pg.draw.circle(bb_img, (255, 0, 0), (10, 10), 10) # 爆弾円を描く 
+    #bb_img.set_colorkey((0, 0, 0))
     bb_rct = bb_img.get_rect() # 爆弾のRectを取得する
     bb_rct.centerx = random.randint(0, WIDTH) # 爆弾の初期横座標を設定する
     bb_rct.centery = random.randint(0, HEIGHT) # 爆弾の初期縦座標を設定する    
@@ -93,7 +113,27 @@ def main():
             kk_rct.move_ip(-sum_mv[0], -sum_mv[1])
         
         screen.blit(kk_img, kk_rct)
-        bb_rct.move_ip(vx, vy)
+        
+        # ▼ ここから演習2の追加部分
+        # tmr//500 で500フレームごとに段階を上げる。上限は9 (リストの最大インデックス) 
+        idx = min(tmr // 500, 9)
+        
+        # 加速度リストから値を取得し、現在の速度(vx, vy)に掛けて新しい速度を計算 
+        avx = vx * bb_accs[idx]
+        avy = vy * bb_accs[idx]
+        
+        # 爆弾の画像を段階に応じたサイズのものに切り替える 
+        bb_img = bb_imgs[idx]
+        
+        # 画像サイズが変わったので、当たり判定用のRectのサイズも更新する 
+        bb_rct.width = bb_img.get_rect().width
+        bb_rct.height = bb_img.get_rect().height
+        
+        # 加速された速度(avx, avy)で爆弾を移動させる 
+        bb_rct.move_ip(avx, avy)
+        # ▲ 追加部分はここまで
+        #screen.blit(kk_img, kk_rct)
+        #bb_rct.move_ip(vx, vy)
         yoko, tate = check_bound(bb_rct)
         if not yoko:
             vx *= -1
