@@ -43,6 +43,9 @@ def main():
         for event in pg.event.get():
             if event.type == pg.QUIT: 
                 return
+            
+        if kk_rct.colliderect(bb_rct): 
+            return
         screen.blit(bg_img, [0, 0]) 
 
         key_lst = pg.key.get_pressed()
@@ -62,7 +65,7 @@ def main():
             vx *= -1
         if not tate:
             vy *= -1
-            
+
         screen.blit(bb_img, bb_rct)
         pg.display.update()
         tmr += 1
